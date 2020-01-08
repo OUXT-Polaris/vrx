@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(wave_gazebo_plugins)
 
 ###############################################################################
@@ -6,6 +6,20 @@ project(wave_gazebo_plugins)
 
 #set(CMAKE_CXX_STANDARD 11)
 #set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
 # For this package set as C++14
 include(CheckCXXCompilerFlag)
@@ -22,29 +36,17 @@ endif()
 ###############################################################################
 # Other dependencies...
 
-find_package(catkin REQUIRED COMPONENTS gazebo_ros)
+find_package(ament_cmake REQUIRED)
+find_package(gazebo_ros REQUIRED)
 find_package(gazebo REQUIRED)
 find_package(Eigen3 REQUIRED)
 
 ############################################################################### 
 # Catkin...
 
-catkin_package(
-  INCLUDE_DIRS
-    include
-  LIBRARIES
-    Hydrodynamics
-    WavefieldModelPlugin
-    WavefieldVisualPlugin
-    wavegauge_plugin
-  DEPENDS
-    gazebo_ros
-)
-
 include_directories(
   ${PROJECT_SOURCE_DIR}/include
   ${Boost_INCLUDE_DIRS}
-  ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
   ${GAZEBO_INCLUDE_DIRS}
   ${GAZEBO_MSG_INCLUDE_DIRS}
@@ -77,7 +79,6 @@ add_library(Hydrodynamics
 
 target_link_libraries(Hydrodynamics
   ${Boost_LIBRARIES}
-  ${catkin_LIBRARIES}
   ${GAZEBO_LIBRARIES}
 )
 
@@ -96,7 +97,6 @@ add_library(WavefieldModelPlugin
 
 target_link_libraries(WavefieldModelPlugin
   ${Boost_LIBRARIES}
-  ${catkin_LIBRARIES}
   ${GAZEBO_LIBRARIES}
   ${WAVE_GAZEBO_LIBRARIES_LIST}
 )
@@ -113,7 +113,6 @@ add_library(WavefieldVisualPlugin
 
 target_link_libraries(WavefieldVisualPlugin
   ${Boost_LIBRARIES}
-  ${catkin_LIBRARIES}
   ${GAZEBO_LIBRARIES}
   ${WAVE_GAZEBO_LIBRARIES_LIST}
 )
@@ -131,7 +130,6 @@ add_library(wavegauge_plugin
 
 target_link_libraries(wavegauge_plugin
   ${Boost_LIBRARIES}
-  ${catkin_LIBRARIES}
   ${GAZEBO_LIBRARIES}
   ${WAVE_GAZEBO_LIBRARIES_LIST}
 )
@@ -151,48 +149,36 @@ list(APPEND WAVE_GAZEBO_PLUGINS_LIST wavegauge_plugin)
 # http://www.personalrobotics.ri.cmu.edu/software/unit-testing
 # 
 
-if(CATKIN_ENABLE_TESTING)
-
-  catkin_add_gtest(UNIT_Wavefield_TEST src/Wavefield_TEST.cc)
-  target_link_libraries(UNIT_Wavefield_TEST ${WAVE_GAZEBO_LIBRARIES_LIST})
-  target_compile_options(UNIT_Wavefield_TEST PRIVATE "-Wno-unknown-pragmas")
-
-endif()
-
 ############################################################################### 
 # Install
 
 install(TARGETS ${WAVE_GAZEBO_LIBRARIES_LIST}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 install(TARGETS ${WAVE_GAZEBO_PLUGINS_LIST}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 install(TARGETS ${WAVE_GAZEBO_EXECUTABLES_LIST}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  FILES_MATCHING PATTERN "*.hh"
-  PATTERN "*~" EXCLUDE
-)
-
-install(DIRECTORY include/
-   DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
-   FILES_MATCHING PATTERN ".hh"
+install(
+  DIRECTORY "include/"
+  DESTINATION include
 )
 
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  DESTINATION include
   FILES_MATCHING PATTERN "*.pb.*"
   PATTERN "*~" EXCLUDE
 )
+
+ament_package()
