@@ -181,4 +181,5 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
   PATTERN "*~" EXCLUDE
 )
 
+ament_export_include_directories(include)
 ament_package()

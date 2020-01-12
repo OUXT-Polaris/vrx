@@ -18,9 +18,9 @@
 #ifndef USV_GAZEBO_PLUGINS_THRUST_HH
 #define USV_GAZEBO_PLUGINS_THRUST_HH
 
-#include <ros/ros.h>
-#include <std_msgs/Float32.h>
-#include <sensor_msgs/JointState.h>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/float32.hpp>
+#include <sensor_msgs/msg/joint_state.h>
 #include <memory>
 #include <mutex>
 #include <string>

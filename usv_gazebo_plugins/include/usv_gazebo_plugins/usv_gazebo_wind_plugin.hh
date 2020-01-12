@@ -18,7 +18,7 @@
 #ifndef USV_GAZEBO_PLUGINS_WIND_HH_
 #define USV_GAZEBO_PLUGINS_WIND_HH_
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <memory>
 #include <random>
 #include <string>
@@ -27,11 +27,13 @@
 #include <gazebo/common/Plugin.hh>
 #include <ignition/math/Vector3.hh>
 #include <gazebo/physics/physics.hh>
+#include <gazebo_ros/node.hpp>
 
 #include <sdf/sdf.hh>
 
 namespace gazebo
 {
+  class UsvWindPluginPrivate;
   /// \brief A plugin that simulates a simple wind model. It accepts the
   /// following parameters:
   ///
@@ -124,15 +126,6 @@ namespace gazebo
     /// \brief Variable velocity component.
     private: double varVel;
 
-    /// \brief ROS node handle.
-    private: std::unique_ptr<ros::NodeHandle> rosNode;
-
-    /// \brief Publisher for wind speed.
-    private: ros::Publisher windSpeedPub;
-
-    /// \brief Publisher for wind direction.
-    private: ros::Publisher windDirectionPub;
-
     /// \brief Topic where the wind speed is published.
     private: std::string topicWindSpeed = "/vrx/debug/wind/speed";
 
@@ -153,6 +146,11 @@ namespace gazebo
 
     /// \def Random generator.
     private: std::unique_ptr<std::mt19937> randGenerator;
+
+    /// ROS Interface
+    gazebo_ros::Node::SharedPtr rosNode;
+    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr windSpeedPub;
+    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr windDirectionPub;
   };
 }
 
