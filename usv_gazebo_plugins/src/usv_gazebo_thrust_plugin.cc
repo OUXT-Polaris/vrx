@@ -42,7 +42,7 @@ Thruster::Thruster(UsvThrust *_parent)
 }
 
 //////////////////////////////////////////////////
-void Thruster::OnThrustCmd(const std_msgs::Float32::ConstPtr &_msg)
+void Thruster::OnThrustCmd(const std_msgs::msg::Float32::SharedPtr _msg)
 {
   // When we get a new thrust command!
   std::lock_guard<std::mutex> lock(this->plugin->mutex);
@@ -55,12 +55,18 @@ void Thruster::OnThrustCmd(const std_msgs::Float32::ConstPtr &_msg)
 }
 
 //////////////////////////////////////////////////
-void Thruster::OnThrustAngle(const std_msgs::Float32::ConstPtr &_msg)
+void Thruster::OnThrustAngle(const std_msgs::msg::Float32::SharedPtr _msg)
 {
   // When we get a new thrust angle!
   std::lock_guard<std::mutex> lock(this->plugin->mutex);
   this->desiredAngle = boost::algorithm::clamp(_msg->data, -this->maxAngle,
                                                this->maxAngle);
+}
+
+//////////////////////////////////////////////////
+UsvThrust::UsvThrust():rosClock(RCL_ROS_TIME)
+{
+
 }
 
 //////////////////////////////////////////////////
@@ -263,13 +269,13 @@ void UsvThrust::Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf)
   //ROS_DEBUG_STREAM("Found " << thrusterCounter << " thrusters");
 
   // Initialize the ROS node and subscribe to cmd_drive
-  this->rosnode.reset(new ros::NodeHandle(nodeNamespace));
+  this->rosnode.reset();
 
   // Advertise joint state publisher to view engines and propellers in rviz
   // TODO: consider throttling joint_state pub for performance
   // (every OnUpdate may be too frequent).
   this->jointStatePub =
-    this->rosnode->advertise<sensor_msgs::JointState>("joint_states", 1);
+    this->rosnode->create_publisher<sensor_msgs::msg::JointState>("joint_states", 1);
   this->jointStateMsg.name.resize(2 * thrusters.size());
   this->jointStateMsg.position.resize(2 * thrusters.size());
   this->jointStateMsg.velocity.resize(2 * thrusters.size());
@@ -283,16 +289,15 @@ void UsvThrust::Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf)
       this->thrusters[i].propJoint->GetName();
 
     // Subscribe to commands for each thruster.
-    this->thrusters[i].cmdSub = this->rosnode->subscribe(
-      this->thrusters[i].cmdTopic, 1, &Thruster::OnThrustCmd,
-      &this->thrusters[i]);
-
+    this->thrusters[i].cmdSub = this->rosnode->create_subscription<std_msgs::msg::Float32>(
+      this->thrusters[i].cmdTopic, 1, 
+      std::bind(&Thruster::OnThrustCmd, this->thrusters[i], std::placeholders::_1));
     // Subscribe to angles for each thruster.
     if (this->thrusters[i].enableAngle)
     {
-      this->thrusters[i].angleSub = this->rosnode->subscribe(
-        this->thrusters[i].angleTopic, 1, &Thruster::OnThrustAngle,
-        &this->thrusters[i]);
+      this->thrusters[i].angleSub = this->rosnode->create_subscription<std_msgs::msg::Float32>(
+        this->thrusters[i].angleTopic, 1, 
+        std::bind(&Thruster::OnThrustAngle, this->thrusters[i], std::placeholders::_1));
     }
   }
 
@@ -403,8 +408,8 @@ void UsvThrust::Update()
   }
 
   // Publish the propeller joint state
-  this->jointStateMsg.header.stamp = ros::Time::now();
-  this->jointStatePub.publish(this->jointStateMsg);
+  this->jointStateMsg.header.stamp = rosClock.now();
+  this->jointStatePub->publish(this->jointStateMsg);
 }
 
 //////////////////////////////////////////////////
@@ -469,4 +474,4 @@ void UsvThrust::SpinPropeller(size_t _i)
   this->jointStateMsg.effort[2 * _i + 1] = effort;
 }
 
-GZ_REGISTER_MODEL_PLUGIN(UsvThrust);
+GZ_REGISTER_MODEL_PLUGIN(UsvThrust)

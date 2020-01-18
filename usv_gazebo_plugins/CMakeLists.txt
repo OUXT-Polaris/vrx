@@ -30,6 +30,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(gazebo_dev REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(xacro REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(wave_gazebo_plugins REQUIRED)
@@ -78,17 +79,18 @@ include_directories(
 #)
 
 ## Declare a C++ library
-#add_library(usv_gazebo_thrust_plugin
-#  src/usv_gazebo_thrust_plugin.cc
-#)
-#target_link_libraries(usv_gazebo_thrust_plugin
-#  ${Eigen_LIBRARIES}
-#)
-#install(TARGETS usv_gazebo_thrust_plugin
-#  ARCHIVE DESTINATION lib
-#  LIBRARY DESTINATION lib
-#  RUNTIME DESTINATION bin
-#)
+add_library(usv_gazebo_thrust_plugin
+  src/usv_gazebo_thrust_plugin.cc
+)
+target_link_libraries(usv_gazebo_thrust_plugin
+  ${Eigen_LIBRARIES}
+)
+ament_target_dependencies(usv_gazebo_thrust_plugin rclcpp std_msgs sensor_msgs)
+install(TARGETS usv_gazebo_thrust_plugin
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
 
 ## Declare a C++ library
 add_library(usv_gazebo_wind_plugin
@@ -96,6 +98,11 @@ add_library(usv_gazebo_wind_plugin
 )
 target_link_libraries(usv_gazebo_wind_plugin
   ${Eigen_LIBRARIES}
+)
+install(TARGETS usv_gazebo_wind_plugin
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 # Generate demo world files from xacro and install
@@ -105,12 +112,6 @@ xacro_add_files(
 )
 install(DIRECTORY worlds/
         DESTINATION worlds)
-
-install(TARGETS usv_gazebo_wind_plugin
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
 
 install(
   DIRECTORY "include/"

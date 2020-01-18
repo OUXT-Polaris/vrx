@@ -287,4 +287,4 @@ void UsvWindPlugin::Update()
   }
 }
 
-GZ_REGISTER_WORLD_PLUGIN(UsvWindPlugin);
+GZ_REGISTER_WORLD_PLUGIN(UsvWindPlugin)
