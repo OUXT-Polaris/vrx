@@ -1,5 +1,19 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(vrx_gazebo)
+
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
 # We need erb to process the .world.erb files.
 find_program(ERB_EXE_PATH erb)
@@ -15,49 +29,19 @@ find_package (Qt5Core REQUIRED)
 find_package (Protobuf REQUIRED)
 find_package (gazebo REQUIRED)
 
-find_package(catkin REQUIRED COMPONENTS
-  message_generation
-  wamv_gazebo
-  wave_gazebo
-  xacro
-  gazebo_dev
-  geographic_msgs
-  std_msgs
-  rospy
-  roscpp
-)
 
-########################
-## Message generation ##
-########################
-
-add_message_files(
-  FILES
-  Task.msg
-  Contact.msg
-)
-
-add_service_files(
-  FILES
-  ColorSequence.srv
-)
-
-# Python scripts setup
-catkin_python_setup()
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-)
-
-catkin_package(
-  INCLUDE_DIRS include
-  CATKIN_DEPENDS wamv_gazebo wave_gazebo xacro gazebo_dev geographic_msgs std_msgs message_runtime
-)
+find_package(ament_cmake REQUIRED)
+find_package(wamv_gazebo REQUIRED)
+find_package(wave_gazebo REQUIRED)
+find_package(xacro REQUIRED)
+find_package(gazebo_dev REQUIRED)
+find_package(geographic_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(rclcpp REQUIRED)
 
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}") 
 
-include_directories(include ${catkin_INCLUDE_DIRS}
+include_directories(include
   ${Qt5Core_INCLUDE_DIRS}
   ${QT_USE_FILE}
   ${GAZEBO_INCLUDE_DIRS}
@@ -70,151 +54,151 @@ add_subdirectory(msgs)
 add_definitions(${QT_DEFINITIONS})
 
 # Library for displaying waypoint markers
-add_library(waypoint_markers src/waypoint_markers.cc)
-target_link_libraries(waypoint_markers ${catkin_LIBRARIES})
-add_dependencies(waypoint_markers ${catkin_EXPORTED_TARGETS})
-install(TARGETS waypoint_markers
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+#add_library(waypoint_markers src/waypoint_markers.cc)
+#target_link_libraries(waypoint_markers ${catkin_LIBRARIES})
+#add_dependencies(waypoint_markers ${catkin_EXPORTED_TARGETS})
+#install(TARGETS waypoint_markers
+#  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
 # Plugin for setting color of light buoy.
-add_library(light_buoy_plugin src/light_buoy_plugin.cc)
-target_link_libraries(light_buoy_plugin
-  ${catkin_LIBRARIES} 
-  light_buoy_colors_msgs
-)
-add_dependencies(light_buoy_plugin ${catkin_EXPORTED_TARGETS}
-  light_buoy_colors_msgs
-)
-install(TARGETS light_buoy_plugin
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+#add_library(light_buoy_plugin src/light_buoy_plugin.cc)
+#target_link_libraries(light_buoy_plugin
+#  ${catkin_LIBRARIES} 
+#  light_buoy_colors_msgs
+#)
+#add_dependencies(light_buoy_plugin ${catkin_EXPORTED_TARGETS}
+#  light_buoy_colors_msgs
+#)
+#install(TARGETS light_buoy_plugin
+#  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
 # Plugin for setting color and shape of a placard.
-add_library(placard_plugin src/placard_plugin.cc)
-target_link_libraries(placard_plugin
-  ${catkin_LIBRARIES}
-  dock_placard_msgs
-)
-add_dependencies(placard_plugin
-  ${catkin_EXPORTED_TARGETS}
-  dock_placard_msgs
-)
-install(TARGETS placard_plugin
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+#add_library(placard_plugin src/placard_plugin.cc)
+#target_link_libraries(placard_plugin
+#  ${catkin_LIBRARIES}
+#  dock_placard_msgs
+#)
+#add_dependencies(placard_plugin
+#  ${catkin_EXPORTED_TARGETS}
+#  dock_placard_msgs
+#)
+#install(TARGETS placard_plugin
+#  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
 # A generic scoring plugin.
-add_library(scoring_plugin src/scoring_plugin.cc)
-target_link_libraries(scoring_plugin
-  ${catkin_LIBRARIES}
-)
-add_dependencies(scoring_plugin
-  ${catkin_EXPORTED_TARGETS}
-  vrx_gazebo_generate_messages_cpp
-  vrx_gazebo_generate_services_cpp
-)
-install(TARGETS scoring_plugin
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+#add_library(scoring_plugin src/scoring_plugin.cc)
+#target_link_libraries(scoring_plugin
+#  ${catkin_LIBRARIES}
+#)
+#add_dependencies(scoring_plugin
+#  ${catkin_EXPORTED_TARGETS}
+#  vrx_gazebo_generate_messages_cpp
+#  vrx_gazebo_generate_services_cpp
+#)
+#install(TARGETS scoring_plugin
+#  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
 # Plugin for scoring the navigation challenge task.
-add_library(navigation_scoring_plugin src/navigation_scoring_plugin.cc)
-target_link_libraries(navigation_scoring_plugin
-  ${catkin_LIBRARIES}
-  scoring_plugin)
-add_dependencies(navigation_scoring_plugin ${catkin_EXPORTED_TARGETS})
-install(TARGETS navigation_scoring_plugin
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+#add_library(navigation_scoring_plugin src/navigation_scoring_plugin.cc)
+#target_link_libraries(navigation_scoring_plugin
+#  ${catkin_LIBRARIES}
+#  scoring_plugin)
+#add_dependencies(navigation_scoring_plugin ${catkin_EXPORTED_TARGETS})
+#install(TARGETS navigation_scoring_plugin
+#  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
 # Plugin for scoring the station keeping challenge task.
-add_library(stationkeeping_scoring_plugin src/stationkeeping_scoring_plugin.cc)
-target_link_libraries(stationkeeping_scoring_plugin
-  ${catkin_LIBRARIES}
-  scoring_plugin
-  waypoint_markers)
-add_dependencies(stationkeeping_scoring_plugin ${catkin_EXPORTED_TARGETS})
-install(TARGETS stationkeeping_scoring_plugin
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+#add_library(stationkeeping_scoring_plugin src/stationkeeping_scoring_plugin.cc)
+#target_link_libraries(stationkeeping_scoring_plugin
+#  ${catkin_LIBRARIES}
+#  scoring_plugin
+#  waypoint_markers)
+#add_dependencies(stationkeeping_scoring_plugin ${catkin_EXPORTED_TARGETS})
+#install(TARGETS stationkeeping_scoring_plugin
+#  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
 # Plugin for scoring the waypoint navigation challenge task.
-add_library(wayfinding_scoring_plugin src/wayfinding_scoring_plugin.cc)
-target_link_libraries(wayfinding_scoring_plugin
-  ${catkin_LIBRARIES}
-  scoring_plugin
-  waypoint_markers)
-add_dependencies(wayfinding_scoring_plugin ${catkin_EXPORTED_TARGETS})
-install(TARGETS wayfinding_scoring_plugin
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+#add_library(wayfinding_scoring_plugin src/wayfinding_scoring_plugin.cc)
+#target_link_libraries(wayfinding_scoring_plugin
+#  ${catkin_LIBRARIES}
+#  scoring_plugin
+#  waypoint_markers)
+#add_dependencies(wayfinding_scoring_plugin ${catkin_EXPORTED_TARGETS})
+#install(TARGETS wayfinding_scoring_plugin
+#  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
 # Plugin for scoring the scan and dock task.
-add_library(scan_dock_scoring_plugin src/scan_dock_scoring_plugin.cc)
-target_link_libraries(scan_dock_scoring_plugin
-  ${catkin_LIBRARIES}
-  scoring_plugin 
-  light_buoy_colors_msgs
-  dock_placard_msgs
-  )
-add_dependencies(scan_dock_scoring_plugin
-  ${catkin_EXPORTED_TARGETS}
-  light_buoy_colors_msgs
-  dock_placard_msgs
-)
-install(TARGETS scan_dock_scoring_plugin
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+#add_library(scan_dock_scoring_plugin src/scan_dock_scoring_plugin.cc)
+#target_link_libraries(scan_dock_scoring_plugin
+#  ${catkin_LIBRARIES}
+#  scoring_plugin 
+#  light_buoy_colors_msgs
+#  dock_placard_msgs
+#  )
+#add_dependencies(scan_dock_scoring_plugin
+#  ${catkin_EXPORTED_TARGETS}
+#  light_buoy_colors_msgs
+#  dock_placard_msgs
+#)
+#install(TARGETS scan_dock_scoring_plugin
+#  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
-if("${GAZEBO_MAJOR_VERSION}" GREATER "7")
-  # Plugin for Task Info GUI Overlay
-  add_library(gui_task_widget SHARED ${headers_MOC}
-         	src/gui_task_widget.cc
-  )
+#if("${GAZEBO_MAJOR_VERSION}" GREATER "7")
+#  # Plugin for Task Info GUI Overlay
+#  add_library(gui_task_widget SHARED ${headers_MOC}
+#         	src/gui_task_widget.cc
+#  )
 
-  target_link_libraries(gui_task_widget 
-    ${catkin_LIBRARIES}
-    ${GAZEBO_LIBRARIES}
-    ${PROTOBUF_LIBRARIES}
-    ${QT_LIBRARIES}
-  )
-  qt5_use_modules(gui_task_widget Widgets)
-  add_dependencies(gui_task_widget ${catkin_EXPORTED_TARGETS})
-  install(TARGETS gui_task_widget
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-  )
-endif()
+#  target_link_libraries(gui_task_widget 
+#    ${catkin_LIBRARIES}
+#    ${GAZEBO_LIBRARIES}
+#    ${PROTOBUF_LIBRARIES}
+#    ${QT_LIBRARIES}
+#  )
+#  qt5_use_modules(gui_task_widget Widgets)
+#  add_dependencies(gui_task_widget ${catkin_EXPORTED_TARGETS})
+#  install(TARGETS gui_task_widget
+#    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#  )
+#endif()
 
 # Plugin for scoring the perception task.
-add_library(perception_scoring_plugin src/perception_scoring_plugin.cc)
-target_link_libraries(perception_scoring_plugin
-  ${catkin_LIBRARIES}
-  scoring_plugin)
-add_dependencies(perception_scoring_plugin ${catkin_EXPORTED_TARGETS})
-install(TARGETS perception_scoring_plugin
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+#add_library(perception_scoring_plugin src/perception_scoring_plugin.cc)
+#target_link_libraries(perception_scoring_plugin
+#  ${catkin_LIBRARIES}
+#  scoring_plugin)
+#add_dependencies(perception_scoring_plugin ${catkin_EXPORTED_TARGETS})
+#install(TARGETS perception_scoring_plugin
+#  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
 # Dock base files that need to be processed with erb
 set (dock_base_erb_files
@@ -306,17 +290,3 @@ install(DIRECTORY launch/
 
 install(PROGRAMS scripts/spawn_wamv.bash
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
-if (CATKIN_ENABLE_TESTING)
-  find_package(rostest REQUIRED)
-  add_rostest_gtest(sandisland_test
-                    test/sandisland.test
-                    test/sandisland.cc)
-  target_link_libraries(sandisland_test ${catkin_LIBRARIES})
-endif()
-
-# Python Scripts
-catkin_install_python(PROGRAMS bin/generate_wamv
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
-
