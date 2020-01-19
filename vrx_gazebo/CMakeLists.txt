@@ -250,6 +250,10 @@ add_custom_target(dock_erb_generation ALL
     dock_base_erb_generation
 )
 
+# Install all the world files
+install(DIRECTORY worlds/
+  DESTINATION share/vrx_gazebo/worlds)
+
 # Generate world files from xacro and install
 xacro_add_files(
   worlds/example_course.world.xacro
@@ -262,7 +266,7 @@ xacro_add_files(
   worlds/wayfinding_task.world.xacro
   worlds/wind_test.world.xacro
   worlds/ocean.world.xacro
-  INORDER INSTALL DESTINATION worlds
+  INSTALL DESTINATION worlds
 )
 # Generate obstacle course
 add_custom_command(
@@ -273,20 +277,18 @@ add_custom_command(
 add_custom_target(${PROJECT_NAME}_generate_obstacle_course_buoys ALL DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/models/robotx_2018_qualifying_avoid_obstacles_buoys/model.sdf)
 
 # Install all the config files
-install(DIRECTORY config/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)
-
-# Install all the world files
-install(DIRECTORY worlds/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/worlds)
+#install(DIRECTORY config/
+#  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)
 
 # Install all the model files
-install(DIRECTORY models/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/models)
+#install(DIRECTORY models/
+#  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/models)
 
 # Install all the launch files
-install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
+#install(DIRECTORY launch/
+#  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
 
-install(PROGRAMS scripts/spawn_wamv.bash
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+#install(PROGRAMS scripts/spawn_wamv.bash
+#  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+ament_package()
