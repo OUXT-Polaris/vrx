@@ -50,33 +50,23 @@ include_directories(
 )
 
 ## Declare a C++ library
-#add_library(buoyancy_gazebo_plugin
-#  src/buoyancy_gazebo_plugin.cc
-#  src/shape_volume.cc
-#  src/polyhedron_volume.cc
-#)
-#target_link_libraries(buoyancy_gazebo_plugin
-#  ${GAZEBO_LIBRARIES}
-#  ${Eigen_LIBRARIES}
-#)
-#install(TARGETS buoyancy_gazebo_plugin
-#  ARCHIVE DESTINATION lib
-#  LIBRARY DESTINATION lib
-#  RUNTIME DESTINATION bin
-#)
+add_library(buoyancy_gazebo_plugin
+  src/buoyancy_gazebo_plugin.cc
+  src/shape_volume.cc
+  src/polyhedron_volume.cc
+)
+target_link_libraries(buoyancy_gazebo_plugin
+  ${GAZEBO_LIBRARIES}
+  ${Eigen_LIBRARIES}
+)
 
 ## Declare a C++ library
-#add_library(usv_gazebo_dynamics_plugin
-#  src/usv_gazebo_dynamics_plugin.cc
-#)
-#target_link_libraries(usv_gazebo_dynamics_plugin
-#  ${Eigen_LIBRARIES}
-#)
-#install(TARGETS usv_gazebo_dynamics_plugin
-#  ARCHIVE DESTINATION lib
-#  LIBRARY DESTINATION lib
-#  RUNTIME DESTINATION bin
-#)
+add_library(usv_gazebo_dynamics_plugin
+  src/usv_gazebo_dynamics_plugin.cc
+)
+target_link_libraries(usv_gazebo_dynamics_plugin
+  ${Eigen_LIBRARIES}
+)
 
 ## Declare a C++ library
 add_library(usv_gazebo_thrust_plugin
@@ -86,11 +76,6 @@ target_link_libraries(usv_gazebo_thrust_plugin
   ${Eigen_LIBRARIES}
 )
 ament_target_dependencies(usv_gazebo_thrust_plugin rclcpp std_msgs sensor_msgs)
-install(TARGETS usv_gazebo_thrust_plugin
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
 
 ## Declare a C++ library
 add_library(usv_gazebo_wind_plugin
@@ -98,11 +83,6 @@ add_library(usv_gazebo_wind_plugin
 )
 target_link_libraries(usv_gazebo_wind_plugin
   ${Eigen_LIBRARIES}
-)
-install(TARGETS usv_gazebo_wind_plugin
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
 )
 
 # Generate demo world files from xacro and install
@@ -117,3 +97,12 @@ install(
   DIRECTORY "include/"
   DESTINATION include
 )
+
+install(TARGETS
+  usv_gazebo_wind_plugin
+  usv_gazebo_thrust_plugin
+  usv_gazebo_dynamics_plugin
+  buoyancy_gazebo_plugin
+  DESTINATION lib/${PROJECT_NAME})
+
+ament_package()
