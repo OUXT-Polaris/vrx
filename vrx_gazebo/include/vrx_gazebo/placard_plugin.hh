@@ -18,9 +18,9 @@
 #ifndef VRX_GAZEBO_PLACARD_PLUGIN_HH_
 #define VRX_GAZEBO_PLACARD_PLUGIN_HH_
 
-#include <ros/ros.h>
-#include <std_msgs/ColorRGBA.h>
-#include <std_msgs/Empty.h>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/color_rgba.hpp>
+#include <std_msgs/msg/empty.hpp>
 #include <dock_placard.pb.h>
 #include <array>
 #include <cstdint>
@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 #include <gazebo/gazebo.hh>
+#include <gazebo_ros/node.hpp>
 #include <sdf/sdf.hh>
 
 namespace gazebo
@@ -79,13 +80,13 @@ class PlacardPlugin : public gazebo::VisualPlugin
   public: void Load(gazebo::rendering::VisualPtr _parent,
                     sdf::ElementPtr _sdf);
 
-  /// \brief Creates a std_msgs::ColorRGBA message from 4 doubles.
+  /// \brief Creates a std_msgs::msg::ColorRGBA message from 4 doubles.
   /// \param[in] _r Red.
   /// \param[in] _g Green.
   /// \param[in] _b Blue.
   /// \param[in] _a Alpha.
   /// \return The ColorRGBA message.
-  private: static std_msgs::ColorRGBA CreateColor(const double _r,
+  private: static std_msgs::msg::ColorRGBA CreateColor(const double _r,
                                                   const double _g,
                                                   const double _b,
                                                   const double _a);
@@ -102,7 +103,7 @@ class PlacardPlugin : public gazebo::VisualPlugin
 
   /// \brief ROS callback for changing a symbol and its color.
   /// \param[in] _msg Not used.
-  private: void ChangeSymbol(const std_msgs::Empty::ConstPtr &_msg);
+  private: void ChangeSymbol(const std_msgs::msg::Empty::SharedPtr _msg);
 
   /// \brief Gazebo callback for changing light to a specific color pattern.
   /// \param[in] _msg New symbol.
@@ -110,7 +111,7 @@ class PlacardPlugin : public gazebo::VisualPlugin
 
   /// \brief List of the color options (red, green, blue, and no color)
   /// with their string name for logging.
-  private: static std::map<std::string, std_msgs::ColorRGBA> kColors;
+  private: static std::map<std::string, std_msgs::msg::ColorRGBA> kColors;
 
   /// \brief List of the shape options (circle, cross, triangle)
   /// with their string name for logging.
@@ -138,10 +139,10 @@ class PlacardPlugin : public gazebo::VisualPlugin
   private: bool shuffleEnabled = true;
 
   /// \brief Service to generate and display a new symbol.
-  private: ros::Subscriber changeSymbolSub;
+  private: rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr changeSymbolSub;
 
   /// \brief ROS Node handle.
-  private: ros::NodeHandle nh;
+  private: gazebo_ros::Node::SharedPtr nh;
 
   /// \brief ROS namespace.
   private: std::string ns;

@@ -118,10 +118,8 @@ void LightBuoyPlugin::Load(gazebo::rendering::VisualPtr _parent,
     
   if (this->shuffleEnabled)
   {
-    /*
     this->changePatternSub = this->nh->create_subscription<std_msgs::msg::Empty>(
-      this->rosShuffleTopic, 1, std::bind(&LightBuoyPlugin::ChangePattern, this, _1));
-      */
+      this->rosShuffleTopic, 1, std::bind(&LightBuoyPlugin::ChangePattern, this, std::placeholders::_1));
   }
 
   this->nextUpdateTime = this->scene->SimTime();

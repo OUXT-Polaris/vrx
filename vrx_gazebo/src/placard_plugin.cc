@@ -19,7 +19,7 @@
 #include "vrx_gazebo/placard_plugin.hh"
 
 // Static initialization.
-std::map<std::string, std_msgs::ColorRGBA> PlacardPlugin::kColors =
+std::map<std::string, std_msgs::msg::ColorRGBA> PlacardPlugin::kColors =
   {
     {"red",   CreateColor(1.0, 0.0, 0.0, 1.0)},
     {"green", CreateColor(0.0, 1.0, 0.0, 1.0)},
@@ -36,10 +36,10 @@ PlacardPlugin::PlacardPlugin():
 }
 
 //////////////////////////////////////////////////
-std_msgs::ColorRGBA PlacardPlugin::CreateColor(const double _r,
+std_msgs::msg::ColorRGBA PlacardPlugin::CreateColor(const double _r,
   const double _g, const double _b, const double _a)
 {
-  static std_msgs::ColorRGBA color;
+  static std_msgs::msg::ColorRGBA color;
   color.r = _r;
   color.g = _g;
   color.b = _b;
@@ -69,18 +69,11 @@ void PlacardPlugin::Load(gazebo::rendering::VisualPtr _parent,
   if (!this->ParseSDF(_sdf))
     return;
 
-  // Quit if ros plugin was not loaded
-  if (!ros::isInitialized())
-  {
-    ROS_ERROR("ROS was not initialized.");
-    return;
-  }
-
   if (this->shuffleEnabled)
   {
-    this->nh = ros::NodeHandle(this->ns);
-    this->changeSymbolSub = this->nh.subscribe(
-      this->rosShuffleTopic, 1, &PlacardPlugin::ChangeSymbol, this);
+    this->nh.reset();
+    this->changeSymbolSub = this->nh->create_subscription<std_msgs::msg::Empty>(
+      this->rosShuffleTopic, 1, std::bind(&PlacardPlugin::ChangeSymbol, this, std::placeholders::_1));
   }
 
   this->nextUpdateTime = this->scene->SimTime();
@@ -105,7 +98,7 @@ void PlacardPlugin::ChangeSymbolTo(gazebo::ConstDockPlacardPtr &_msg)
 bool PlacardPlugin::ParseSDF(sdf::ElementPtr _sdf)
 {
   // We initialize it with a random shape and color.
-  this->ChangeSymbol(std_msgs::Empty::ConstPtr());
+  this->ChangeSymbol(std_msgs::msg::Empty::SharedPtr());
 
   // Parse the shape.
   if (_sdf->HasElement("shape"))
@@ -120,8 +113,10 @@ bool PlacardPlugin::ParseSDF(sdf::ElementPtr _sdf)
     }
     else
     {
+      /*
       ROS_INFO_NAMED("PlacardPlugin",
                   "incorrect [%s] <shape>, using random shape", aShape.c_str());
+                  */
     }
   }
 
@@ -137,22 +132,24 @@ bool PlacardPlugin::ParseSDF(sdf::ElementPtr _sdf)
     }
     else
     {
+      /*
       ROS_INFO_NAMED("PlacardPlugin",
                   "incorrect [%s] <color>, using random color", aColor.c_str());
+      */
     }
   }
 
   // Required: visuals.
   if (!_sdf->HasElement("visuals"))
   {
-    ROS_ERROR("<visuals> missing");
+    //ROS_ERROR("<visuals> missing");
     return false;
   }
 
   auto visualsElem = _sdf->GetElement("visuals");
   if (!visualsElem->HasElement("visual"))
   {
-    ROS_ERROR("<visual> missing");
+    //ROS_ERROR("<visual> missing");
     return false;
   }
 
@@ -172,7 +169,7 @@ bool PlacardPlugin::ParseSDF(sdf::ElementPtr _sdf)
     // Required if shuffle enabled: ROS topic.
     if (!_sdf->HasElement("ros_shuffle_topic"))
     {
-      ROS_ERROR("<ros_shuffle_topic> missing");
+      //ROS_ERROR("<ros_shuffle_topic> missing");
     }
     this->rosShuffleTopic = _sdf->GetElement
       ("ros_shuffle_topic")->Get<std::string>();
@@ -181,7 +178,7 @@ bool PlacardPlugin::ParseSDF(sdf::ElementPtr _sdf)
   // Required: namespace.
   if (!_sdf->HasElement("robot_namespace"))
   {
-    ROS_ERROR("<robot_namespace> missing");
+    //ROS_ERROR("<robot_namespace> missing");
   }
   this->ns = _sdf->GetElement("robot_namespace")->Get<std::string>();
   if (!_sdf->HasElement("gz_symbol_topic"))
@@ -207,8 +204,10 @@ void PlacardPlugin::Update()
       auto visualPtr = this->scene->GetVisual(visualName);
       if (visualPtr)
         this->visuals.push_back(visualPtr);
+      /*
       else
         ROS_ERROR("Unable to find [%s] visual", visualName.c_str());
+      */
     }
   }
 
@@ -223,7 +222,7 @@ void PlacardPlugin::Update()
   // Update the visuals.
   for (auto visual : this->visuals)
   {
-    std_msgs::ColorRGBA color;
+    std_msgs::msg::ColorRGBA color;
     color.a = 0.0;
 
     #if GAZEBO_MAJOR_VERSION >= 8
@@ -249,7 +248,7 @@ void PlacardPlugin::Update()
 }
 
 //////////////////////////////////////////////////
-void PlacardPlugin::ChangeSymbol(const std_msgs::Empty::ConstPtr &_msg)
+void PlacardPlugin::ChangeSymbol(const std_msgs::msg::Empty::SharedPtr _msg)
 {
   {
     std::lock_guard<std::mutex> lock(this->mutex);
@@ -259,8 +258,10 @@ void PlacardPlugin::ChangeSymbol(const std_msgs::Empty::ConstPtr &_msg)
       (this->allPatternsIdx + 1) % this->allPatterns.size();
   }
 
+  /*
   ROS_INFO_NAMED("PlacardPlugin", "New symbol is %s %s", this->color.c_str(),
     this->shape.c_str());
+    */
 }
 
 // Register plugin with gazebo

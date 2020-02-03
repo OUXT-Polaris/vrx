@@ -64,16 +64,11 @@ target_link_libraries(light_buoy_plugin
   light_buoy_colors_msgs
 )
 ament_target_dependencies(light_buoy_plugin rclcpp std_msgs)
-#add_dependencies(light_buoy_plugin ${catkin_EXPORTED_TARGETS}
-#  light_buoy_colors_msgs
-#)
-#install(TARGETS light_buoy_plugin
-#  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-#)
+add_dependencies(light_buoy_plugin light_buoy_colors_msgs)
 
 # Plugin for setting color and shape of a placard.
+add_library(placard_plugin src/placard_plugin.cc)
+
 #add_library(placard_plugin src/placard_plugin.cc)
 #target_link_libraries(placard_plugin
 #  ${catkin_LIBRARIES}
