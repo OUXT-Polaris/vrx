@@ -40,6 +40,6 @@ install(DIRECTORY config/
 
 # Install launch files
 install(DIRECTORY launch/
-  DESTINATION share/wamv_gazebo/launch)
+  DESTINATION share/launch)
 
 ament_package()

@@ -46,6 +46,8 @@ include_directories(include
   ${QT_USE_FILE}
   ${GAZEBO_INCLUDE_DIRS}
   ${CMAKE_CURRENT_BINARY_DIR}/msgs
+  ${rclcpp_INCLUDE_DIRS}
+  ${std_msgs_INCLUDE_DIRS}
 )
 
 link_directories(${GAZEBO_LIBRARY_DIRS} ${CMAKE_CURRENT_BINARY_DIR}/msgs)
@@ -54,21 +56,14 @@ add_subdirectory(msgs)
 add_definitions(${QT_DEFINITIONS})
 
 # Library for displaying waypoint markers
-#add_library(waypoint_markers src/waypoint_markers.cc)
-#target_link_libraries(waypoint_markers ${catkin_LIBRARIES})
-#add_dependencies(waypoint_markers ${catkin_EXPORTED_TARGETS})
-#install(TARGETS waypoint_markers
-#  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-#)
+add_library(waypoint_markers src/waypoint_markers.cc)
 
 # Plugin for setting color of light buoy.
-#add_library(light_buoy_plugin src/light_buoy_plugin.cc)
-#target_link_libraries(light_buoy_plugin
-#  ${catkin_LIBRARIES} 
-#  light_buoy_colors_msgs
-#)
+add_library(light_buoy_plugin src/light_buoy_plugin.cc)
+target_link_libraries(light_buoy_plugin
+  light_buoy_colors_msgs
+)
+ament_target_dependencies(light_buoy_plugin rclcpp std_msgs)
 #add_dependencies(light_buoy_plugin ${catkin_EXPORTED_TARGETS}
 #  light_buoy_colors_msgs
 #)
@@ -200,6 +195,11 @@ add_definitions(${QT_DEFINITIONS})
 #  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 #)
 
+install(TARGETS
+  waypoint_markers
+  light_buoy_plugin
+  DESTINATION lib/${PROJECT_NAME})
+
 # Dock base files that need to be processed with erb
 set (dock_base_erb_files
   models/dock_2016_base/model.sdf.erb
@@ -254,6 +254,18 @@ add_custom_target(dock_erb_generation ALL
 install(DIRECTORY worlds/
   DESTINATION share/vrx_gazebo/worlds)
 
+# Install config files
+install(DIRECTORY config/
+  DESTINATION share/vrx_gazebo/config)
+
+# Install all the model files
+install(DIRECTORY models/
+  DESTINATION share/vrx_gazebo/models)
+
+# Install all the launch files
+install(DIRECTORY launch/
+  DESTINATION share/vrx_gazebo)
+
 # Generate world files from xacro and install
 xacro_add_files(
   worlds/example_course.world.xacro
@@ -268,6 +280,7 @@ xacro_add_files(
   worlds/ocean.world.xacro
   INSTALL DESTINATION worlds
 )
+
 # Generate obstacle course
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/models/robotx_2018_qualifying_avoid_obstacles_buoys/model.sdf
@@ -275,18 +288,6 @@ add_custom_command(
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_avoid_obstacles_buoys --seed 1337 --a3 6 --a5 7 --a7 7 > ${CMAKE_CURRENT_SOURCE_DIR}/models/robotx_2018_qualifying_avoid_obstacles_buoys/model.sdf
 )
 add_custom_target(${PROJECT_NAME}_generate_obstacle_course_buoys ALL DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/models/robotx_2018_qualifying_avoid_obstacles_buoys/model.sdf)
-
-# Install all the config files
-#install(DIRECTORY config/
-#  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)
-
-# Install all the model files
-#install(DIRECTORY models/
-#  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/models)
-
-# Install all the launch files
-#install(DIRECTORY launch/
-#  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
 
 #install(PROGRAMS scripts/spawn_wamv.bash
 #  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

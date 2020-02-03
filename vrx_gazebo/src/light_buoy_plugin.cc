@@ -27,10 +27,10 @@ const std::array<LightBuoyPlugin::Colors_t, 5> LightBuoyPlugin::kColors
      LightBuoyPlugin::Colors_t(CreateColor(0.0, 0.0, 0.0, 1.0), "off")};
 
 //////////////////////////////////////////////////
-std_msgs::ColorRGBA LightBuoyPlugin::CreateColor(const double _r,
+std_msgs::msg::ColorRGBA LightBuoyPlugin::CreateColor(const double _r,
   const double _g, const double _b, const double _a)
 {
-  static std_msgs::ColorRGBA color;
+  static std_msgs::msg::ColorRGBA color;
   color.r = _r;
   color.g = _g;
   color.b = _b;
@@ -80,6 +80,7 @@ void LightBuoyPlugin::InitializeAllPatterns()
 LightBuoyPlugin::LightBuoyPlugin() :
   gzNode(new gazebo::transport::Node())
 {
+  this->nh.reset();
 }
 
 //////////////////////////////////////////////////
@@ -114,19 +115,13 @@ void LightBuoyPlugin::Load(gazebo::rendering::VisualPtr _parent,
 
   if (!this->ParseSDF(_sdf))
     return;
-
-  // Quit if ros plugin was not loaded
-  if (!ros::isInitialized())
-  {
-    ROS_ERROR("ROS was not initialized.");
-    return;
-  }
-
+    
   if (this->shuffleEnabled)
   {
-    this->nh = ros::NodeHandle(this->ns);
-    this->changePatternSub = this->nh.subscribe(
-      this->rosShuffleTopic, 1, &LightBuoyPlugin::ChangePattern, this);
+    /*
+    this->changePatternSub = this->nh->create_subscription<std_msgs::msg::Empty>(
+      this->rosShuffleTopic, 1, std::bind(&LightBuoyPlugin::ChangePattern, this, _1));
+      */
   }
 
   this->nextUpdateTime = this->scene->SimTime();
@@ -148,7 +143,7 @@ bool LightBuoyPlugin::ParseSDF(sdf::ElementPtr _sdf)
   {
     if (!_sdf->HasElement(colorIndex))
     {
-      ROS_ERROR("<%s> missing", colorIndex);
+      //ROS_ERROR("<%s> missing", colorIndex);
       return false;
     }
 
@@ -159,7 +154,7 @@ bool LightBuoyPlugin::ParseSDF(sdf::ElementPtr _sdf)
     if (color != "red"  && color != "green" &&
         color != "blue" && color != "yellow" && color != "off")
     {
-      ROS_ERROR("Invalid color [%s]", color.c_str());
+      //ROS_ERROR("Invalid color [%s]", color.c_str());
       return false;
     }
 
@@ -173,14 +168,14 @@ bool LightBuoyPlugin::ParseSDF(sdf::ElementPtr _sdf)
   // Required: visuals.
   if (!_sdf->HasElement("visuals"))
   {
-    ROS_ERROR("<visuals> missing");
+    //ROS_ERROR("<visuals> missing");
     return false;
   }
 
   auto visualsElem = _sdf->GetElement("visuals");
   if (!visualsElem->HasElement("visual"))
   {
-    ROS_ERROR("<visual> missing");
+    //ROS_ERROR("<visual> missing");
     return false;
   }
 
@@ -200,7 +195,7 @@ bool LightBuoyPlugin::ParseSDF(sdf::ElementPtr _sdf)
     // Required if shuffle enabled: ROS topic.
     if (!_sdf->HasElement("ros_shuffle_topic"))
     {
-      ROS_ERROR("<ros_shuffle_topic> missing");
+      //ROS_ERROR("<ros_shuffle_topic> missing");
     }
     this->rosShuffleTopic = _sdf->GetElement
       ("ros_shuffle_topic")->Get<std::string>();
@@ -234,8 +229,8 @@ void LightBuoyPlugin::Update()
       auto visualPtr = this->scene->GetVisual(visualName);
       if (visualPtr)
         this->visuals.push_back(visualPtr);
-      else
-        ROS_ERROR("Unable to find [%s] visual", visualName.c_str());
+      //else
+        //ROS_ERROR("Unable to find [%s] visual", visualName.c_str());
     }
   }
 
@@ -268,7 +263,7 @@ void LightBuoyPlugin::Update()
 }
 
 //////////////////////////////////////////////////
-void LightBuoyPlugin::ChangePattern(const std_msgs::Empty::ConstPtr &_msg)
+void LightBuoyPlugin::ChangePattern(const std_msgs::msg::Empty::SharedPtr _msg)
 {
   this->pattern = this->allPatterns[this->allPatternsIdx];
   this->allPatternsIdx = (this->allPatternsIdx + 1) % this->allPatterns.size();
@@ -278,7 +273,7 @@ void LightBuoyPlugin::ChangePattern(const std_msgs::Empty::ConstPtr &_msg)
   for (size_t i = 0; i < 3; ++i)
     colorSeq += this->kColors[this->pattern[i]].second[0];
   // Log the new pattern
-  ROS_INFO_NAMED("LightBuoyPlugin", "Pattern is %s", colorSeq.c_str());
+  //ROS_INFO_NAMED("LightBuoyPlugin", "Pattern is %s", colorSeq.c_str());
 }
 
 // Register plugin with gazebo
