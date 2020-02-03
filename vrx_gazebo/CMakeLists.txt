@@ -68,21 +68,8 @@ add_dependencies(light_buoy_plugin light_buoy_colors_msgs)
 
 # Plugin for setting color and shape of a placard.
 add_library(placard_plugin src/placard_plugin.cc)
-
-#add_library(placard_plugin src/placard_plugin.cc)
-#target_link_libraries(placard_plugin
-#  ${catkin_LIBRARIES}
-#  dock_placard_msgs
-#)
-#add_dependencies(placard_plugin
-#  ${catkin_EXPORTED_TARGETS}
-#  dock_placard_msgs
-#)
-#install(TARGETS placard_plugin
-#  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-#)
+target_link_libraries(placard_plugin dock_placard_msgs)
+add_dependencies(placard_plugin dock_placard_msgs)
 
 # A generic scoring plugin.
 #add_library(scoring_plugin src/scoring_plugin.cc)
@@ -193,6 +180,7 @@ add_library(placard_plugin src/placard_plugin.cc)
 install(TARGETS
   waypoint_markers
   light_buoy_plugin
+  placard_plugin
   DESTINATION lib/${PROJECT_NAME})
 
 # Dock base files that need to be processed with erb
