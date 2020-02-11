@@ -38,6 +38,7 @@ find_package(gazebo_dev REQUIRED)
 find_package(geographic_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(vrx_msgs REQUIRED)
 
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}") 
 
@@ -48,6 +49,7 @@ include_directories(include
   ${CMAKE_CURRENT_BINARY_DIR}/msgs
   ${rclcpp_INCLUDE_DIRS}
   ${std_msgs_INCLUDE_DIRS}
+  ${vrx_msgs_INCLUDE_DIRS}
 )
 
 link_directories(${GAZEBO_LIBRARY_DIRS} ${CMAKE_CURRENT_BINARY_DIR}/msgs)
@@ -72,20 +74,8 @@ target_link_libraries(placard_plugin dock_placard_msgs)
 add_dependencies(placard_plugin dock_placard_msgs)
 
 # A generic scoring plugin.
-#add_library(scoring_plugin src/scoring_plugin.cc)
-#target_link_libraries(scoring_plugin
-#  ${catkin_LIBRARIES}
-#)
-#add_dependencies(scoring_plugin
-#  ${catkin_EXPORTED_TARGETS}
-#  vrx_gazebo_generate_messages_cpp
-#  vrx_gazebo_generate_services_cpp
-#)
-#install(TARGETS scoring_plugin
-#  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-#)
+add_library(scoring_plugin src/scoring_plugin.cc)
+ament_target_dependencies(scoring_plugin rclcpp vrx_msgs)
 
 # Plugin for scoring the navigation challenge task.
 #add_library(navigation_scoring_plugin src/navigation_scoring_plugin.cc)
@@ -181,6 +171,7 @@ install(TARGETS
   waypoint_markers
   light_buoy_plugin
   placard_plugin
+  scoring_plugin
   DESTINATION lib/${PROJECT_NAME})
 
 # Dock base files that need to be processed with erb

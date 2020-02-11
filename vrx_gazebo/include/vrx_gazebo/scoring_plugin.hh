@@ -18,7 +18,7 @@
 #ifndef VRX_GAZEBO_SCORING_PLUGIN_HH_
 #define VRX_GAZEBO_SCORING_PLUGIN_HH_
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <gazebo/msgs/gz_string.pb.h>
 #include <memory>
 #include <string>
@@ -29,8 +29,9 @@
 #include <gazebo/physics/World.hh>
 #include <sdf/sdf.hh>
 #include <gazebo/transport/transport.hh>
-#include "vrx_gazebo/Task.h"
-#include "vrx_gazebo/Contact.h"
+#include <gazebo_ros/node.hpp>
+#include "vrx_msgs/msg/task.hpp"
+#include "vrx_msgs/msg/contact.hpp"
 
 /// \brief A plugin that provides common functionality to any scoring plugin.
 /// This plugin defines four different task states:
@@ -294,25 +295,34 @@ class ScoringPlugin : public gazebo::WorldPlugin
   private: std::string taskState = "initial";
 
   /// \brief The next task message to be published.
-  protected: vrx_gazebo::Task taskMsg;
+  protected: vrx_msgs::msg::Task taskMsg;
 
   /// \brief ROS Contact Msg.
-  private: vrx_gazebo::Contact contactMsg;
+  private: vrx_msgs::msg::Contact contactMsg;
 
   /// \brief The name of the joints to be dettached during ReleaseVehicle().
   private: std::vector<std::string> lockJointNames;
 
   /// \brief ROS node handle.
-  private: std::unique_ptr<ros::NodeHandle> rosNode;
+  private: gazebo_ros::Node::SharedPtr rosNode;
 
   /// \brief Publisher for the task state.
-  protected: ros::Publisher taskPub;
+  protected: rclcpp::Publisher<vrx_msgs::msg::Task>::SharedPtr taskPub;
 
   /// \brief Publisher for the collision.
-  private: ros::Publisher contactPub;
+  private: rclcpp::Publisher<vrx_msgs::msg::Contact>::SharedPtr contactPub;
 
   /// \brief Score in case of timeout - added for Navigation task
   private: double timeoutScore = -1.0;
+
+  // \brief ROS Clock
+  private: rclcpp::Clock rosClock;
+
+  // \brief Time interface from seconds
+  builtin_interfaces::msg::Duration durationFromSec(double seconds);
+
+  // \brief Time interface from seconds
+  builtin_interfaces::msg::Time timeFromSec(double seconds);
 };
 
 #endif

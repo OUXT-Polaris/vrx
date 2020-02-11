@@ -23,7 +23,9 @@
 
 /////////////////////////////////////////////////
 ScoringPlugin::ScoringPlugin()
-    : WorldPlugin(), gzNode(new gazebo::transport::Node()) {
+    : WorldPlugin(), 
+    gzNode(new gazebo::transport::Node()),
+    rosClock(RCL_ROS_TIME) {
 }
 
 void ScoringPlugin::Load(gazebo::physics::WorldPtr _world,
@@ -48,16 +50,14 @@ void ScoringPlugin::Load(gazebo::physics::WorldPtr _world,
 
   // Prepopulate the task msg.
   this->taskMsg.name = this->taskName;
-  this->taskMsg.ready_time.fromSec(this->readyTime.Double());
-  this->taskMsg.running_time.fromSec(this->runningTime.Double());
+  this->taskMsg.ready_time = timeFromSec(this->readyTime.Double());
+  this->taskMsg.running_time = timeFromSec(this->runningTime.Double());
   this->UpdateTaskMessage();
 
   // Initialize ROS transport.
-  this->rosNode.reset(new ros::NodeHandle());
-  this->taskPub = this->rosNode->advertise<vrx_gazebo::Task>
-    (this->taskInfoTopic, 100);
-  this->contactPub = this->rosNode->advertise<vrx_gazebo::Contact>
-    (this->contactDebugTopic, 100);
+  this->rosNode.reset();
+  this->taskPub = this->rosNode->create_publisher<vrx_msgs::msg::Task>(this->taskInfoTopic, 100);
+  this->contactPub = this->rosNode->create_publisher<vrx_msgs::msg::Contact>(this->contactDebugTopic, 100);
 
   this->updateConnection = gazebo::event::Events::ConnectWorldUpdateBegin(
     std::bind(&ScoringPlugin::Update, this));
@@ -201,8 +201,8 @@ void ScoringPlugin::UpdateTaskState()
 void ScoringPlugin::UpdateTaskMessage()
 {
   this->taskMsg.state = this->taskState;
-  this->taskMsg.elapsed_time.fromSec(this->elapsedTime.Double());
-  this->taskMsg.remaining_time.fromSec(this->remainingTime.Double());
+  this->taskMsg.elapsed_time = durationFromSec(this->elapsedTime.Double());
+  this->taskMsg.remaining_time = durationFromSec(this->remainingTime.Double());
   this->taskMsg.timed_out = this->timedOut;
   this->taskMsg.score = this->score;
 }
@@ -215,7 +215,7 @@ void ScoringPlugin::PublishStats()
   // We publish stats at 1Hz.
   if (this->currentTime - this->lastStatsSent >= gazebo::common::Time(1, 0))
   {
-    this->taskPub.publish(this->taskMsg);
+    this->taskPub->publish(this->taskMsg);
     this->lastStatsSent = this->currentTime;
   }
 }
@@ -255,14 +255,14 @@ void ScoringPlugin::OnRunning()
 //////////////////////////////////////////////////
 void ScoringPlugin::OnFinished()
 {
-  gzmsg << ros::Time::now() << "  OnFinished" << std::endl;
+  //gzmsg << ros::Time::now() << "  OnFinished" << std::endl;
   // If a timeoutScore was specified, use it.
   if (this->timedOut && this->timeoutScore > 0.0)
   {
     this->score = this->timeoutScore;
   }
   this->UpdateTaskMessage();
-  this->taskPub.publish(this->taskMsg);
+  this->taskPub->publish(this->taskMsg);
   this->Exit();
 }
 
@@ -291,10 +291,10 @@ void ScoringPlugin::OnCollisionMsg(ConstContactsPtr &_contacts) {
 
     // publish a Contact MSG
     if (isWamvHit && this->debug) {
-      this->contactMsg.header.stamp = ros::Time::now();
+      this->contactMsg.header.stamp = rosClock.now();
       this->contactMsg.collision1 = _contacts->contact(i).collision1();
       this->contactMsg.collision2 = _contacts->contact(i).collision2();
-      this->contactPub.publish(this->contactMsg);
+      this->contactPub->publish(this->contactMsg);
     }
 
     if (isWamvHit && isHitBufferPassed) {
@@ -445,9 +445,11 @@ void ScoringPlugin::Exit()
       gazebo::msgs::ServerControl msg;
       msg.set_stop(true);
       this->serverControlPub->Publish(msg);
+      /*
       // shutdown gazebo
       if (ros::ok())
         ros::shutdown();
+      */
     }
   }
   else
@@ -455,10 +457,24 @@ void ScoringPlugin::Exit()
     gzerr << "VRX_EXIT_ON_COMPLETION not set"
       << " will not shutdown on ScoringPlugin::Exit()"
       << std::endl;
+    /*
     ROS_ERROR_STREAM("VRX_EXIT_ON_COMPLETION not set, will" <<
               "not shutdown on ScoringPlugin::Exit()");
+    */
   }
   return;
+}
+
+builtin_interfaces::msg::Duration durationFromSec(double seconds)
+{
+  rclcpp::Duration ret(std::floor(seconds),seconds-std::floor(seconds));
+  return ret;
+}
+
+builtin_interfaces::msg::Time timeFromSec(double seconds)
+{
+  rclcpp::Time ret(std::floor(seconds),seconds-std::floor(seconds));
+  return ret;
 }
 
 void ScoringPlugin::SetTimeoutScore(double _timeoutScore)
